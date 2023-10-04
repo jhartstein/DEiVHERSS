@@ -1,0 +1,185 @@
+---
+bibliography: references.bib
+author: "Hartstein, J., Tcypina, A., Fabian, G."
+title: "Use corporate design with RMarkdown"
+subtitle: "Contribution to the DEiVHERSS competition 2023"
+output:
+  word_document:
+    reference_docx: DZHW_Projektbericht_DE_mit_Vorwort_VORLAGE.dotx
+  html_document:
+    number_sections: yes
+    toc: yes
+    toc_depth: 2
+    code_download: yes
+  bibliography: default
+---
+
+<script>
+   $(document).ready(function() {
+     $head = $('#header');
+     $head.prepend('<img src=\"DZHW_Logo.jpg\" style=\"float: right; padding: 20px; width: 150px;\"/>')
+   });
+</script>
+
+
+```{r, echo=FALSE}
+# htmltools::img(src = 'DZHW_Logo.jpg',
+#                alt = 'DZHW logo', 
+#                #style = 'position:absolute; top:0; right:0; padding:10px;height:43px;width:102px'
+#                #style = 'float: right;padding-right:10px'
+#                style = 'position:absolute; top:0; right:0; padding:50px;height:100'
+#                )
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(include = TRUE)
+knitr::opts_chunk$set(warning = FALSE)
+knitr::opts_chunk$set(message = FALSE)
+#knitr::opts_chunk$set(results = FALSE)
+
+library(tidyverse)
+library(ggplot2)
+
+### DZHW palette
+DZHWpalette <- c("#7ab52a", # grün
+                 "#605f5f", # grau
+                 "#097d95", # türkis
+                 "#f69f26", # orange
+                 "#79a0c0", # blaugrau
+                 "#0069b2", # blau
+                 "#b5163f", # rot
+                 "#a9ca6c", # grün 70%
+                 "#898686", # grau 70%
+                 "#6f9fb2", # türkis 70%
+                 "#fabd6e", # orange 70%
+                 "#a4bad2", # blaugrau 70%
+                 "#6c91ca", # blau 70%
+                 "#ca626c", # rot 70%
+                 "#d1e1b0", # grün 40%
+                 "#b8b5b5", # grau 40%
+                 "#b1c6d2", # türkis 40%
+                 "#fddaaf", # orange 40%
+                 "#cdd8e6", # blaugrau 40%
+                 "#afbfe2", # blau 40%
+                 "#e0a8a7" #rot 40%
+)
+```
+
+# Preliminary remarks {.unnumbered}
+
+This document template should help you with starting RMarkdown [@rmarkdown] reporting at DZHW. The focus of this template is the use of corporate colours in plots for all outputs, and the corporate MS Word document template for reports.
+
+To use an MS Word template with RMarkdown, you just state it in the YAML header - to make the document perfect, some editing in Word will likely still be required^[But we can hope for a Word template which is more interoperable in the future.]. Please note, that the template must be in your working directory (i.e. probably the folder, in which your .rmd document is located).
+
+As a corporate template for html documents has not yet been made available, the html version of this template is limited to color schemes and the logo up right. The logo must be located in your working directory as "DZHW_Logo.jpg".
+
+For reasons of self-containment, the figures use the gss_cat dataset from the package forcats [@forcats]. For analyses and visualisations, we use the tidyverse [@tidyverse] and ggplot2 [@ggplot2].
+
+Please note, that the code chunks (the computations) are hidden, but you can use the download button (which appears up right in the html version of this template) to access the full source code of this document.
+
+If you have questions or remarks for improvement, please contact hartstein@dzhw.eu
+
+# Simple barchart (one variable)
+
+You can start with a simple bar chart. To play around, see what happens, when you comment or uncomment lines.
+
+In HTML, also the image alt text is embedded. Unfortunately, this does not yet work with the MS Word output.
+
+```{r, fig.alt = "(Vertical) barchart of marital statuses"}
+gss_cat %>%
+  ggplot(aes(x=marital)) +
+  geom_bar(aes(fill = marital)) + # use different colours for different marital statuses
+  scale_fill_manual(values = DZHWpalette) + # use corporate design palette
+  theme(axis.text.x = element_blank()) # remove axis text
+```
+
+# Ordered barchart (one variable)
+
+The bars are ordered by size and axis title as well as legend are hidden to get a cleaner look.
+
+```{r, fig.alt="Ordered vertical barchart with marital statuses"}
+gss_cat %>%
+  ggplot(aes(x=fct_infreq(marital))) + # order marital status by frequency
+  geom_bar(aes(fill = marital)) + # use different colours for different marital statuses
+  scale_fill_manual(values = DZHWpalette) + # use corporate design palette
+  theme(axis.title = element_blank(), # remove axis title
+        legend.position = "none") # remove legend
+```
+
+# Another ordered barchart (one variable)
+
+If the variable you are counting in the bars has long names (read: almost always), we recommend a horizontal bar chart. Also, you can decide to only use one colour from the corporate colour palette.
+
+```{r, fig.alt="Ordered horizontal barchart with marital statuses"}
+gss_cat %>%
+  ggplot(aes(x=fct_rev(fct_infreq(marital)))) + # order by frequency (descending)
+  geom_bar(fill = DZHWpalette[1]) + # use one colour from the corporate design palette
+  theme(axis.title = element_blank()) + # remove axis titles
+  coord_flip() # make the barchart horizontal
+```
+
+# Stacked barplot (two variables)
+
+To show relations between two variables, you can also use a stacked bar chart. For this use case, percentages as labels are recommended.
+
+Please note, that legends can get difficult to print, if there are many categories in your variable. Always check, if you can aggregate or exclude levels (e.g. "No answer" and "Don't know") - if applicable, depending on your mission or research question.
+
+```{r, fig.alt="Stacked horizontal barchart showing marital statuses versus religion"}
+gss_cat %>%
+  ggplot(aes(x=marital,
+             fill = relig)) +
+  geom_bar(position = "fill") + # show amounts in relation
+  scale_fill_manual(values = DZHWpalette) + # use corporate design palette
+  theme(axis.title = element_blank()) + # remove axis title
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) + # label y axis as percentages
+  coord_flip() + # make barplot horizontal
+  theme(legend.position = "bottom", # put the legend at the bottom
+        legend.title = element_blank())+ # remove legend title
+  guides(fill=guide_legend(nrow=5,byrow=TRUE)) # make legend narrower to fit inside figure margins
+```
+
+# Stacked barplot wrapped in panels (three variables)
+
+To show the relation to a third variable, you can panelize your data. Most likely you will have to adjust the number of columns and the height of the figure for facet_wrap, when using an MS Word document as output.
+
+```{r, fig.height=7, fig.alt="Panelized stacked horizontal barchart showing marital status versus religion versus party preference"}
+gss_cat %>%
+  ggplot(aes(x=marital,
+             fill = relig)) +
+  geom_bar(position = "fill") + # show amounts in relation
+  scale_fill_manual(values = DZHWpalette) + # use corporate design palette
+  theme(axis.title = element_blank()) + # remove axis title
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) + # label y axis as percentages
+  coord_flip() + # make barplot horizontal
+  facet_wrap(~partyid, ncol = 3) + # wrap in panels, have no more than 3 columns
+  theme(legend.position = "bottom", # put the legend at the bottom
+        legend.title = element_blank())+ # remove legend title
+  guides(fill=guide_legend(nrow=5,byrow=TRUE)) # make legend narrower to fit inside figure margins
+```
+
+# Stacked barplot in a grid (four variables)
+
+With grid layouts, you can also show four variables - however, this does only work smoothly, if you have not too many categories. The dimensions of the grid are the categories of your third variable times categories of your fourth variable.
+
+```{r, fig.height=6, fig.alt="Panelized stacked horizontal barchart showing marital status versus religion versus party preference (columns) versus year (rows)"}
+gss_cat %>%
+  # grid plots only work with few categories, which is why we filter our values for demonstration
+  # in practice scaling down the factor levels will most likely make more sense epistemically
+  filter(year <= 2004,
+         partyid %in% c("Strong democrat", "Strong republican")) %>%
+  ggplot(aes(x=marital,
+             fill = relig)) +
+  geom_bar(position = "fill") + # show amounts in relation
+  scale_fill_manual(values = DZHWpalette) + # use corporate design palette
+  theme(axis.title = element_blank()) + # remove axis title
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) + # label y axis as percentages
+  coord_flip() + # make barplot horizontal
+  facet_grid(year~partyid) + # put into grid panels
+  theme(legend.position = "bottom", # put the legend at the bottom
+        legend.title = element_blank())+ # remove legend title
+  guides(fill=guide_legend(nrow=5,byrow=TRUE)) # make legend narrower to fit inside figure margins
+```
+
+
+# References
